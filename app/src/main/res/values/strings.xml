@@ -1,3 +1,20 @@
 <resources>
-    <string name="app_name">Todo List</string>
+    <string name="app_name">Simple Todo</string>
+    <string name="todo_menu_title">Todo List</string>
+    <string name="add_menu_title">Add Todo</string>
+    <string name="about_menu_title">About</string>
+    <string name="up_label">Up</string>
+    <string name="empty_todo_title">No todo yet</string>
+    <string name="empty_todo_description">Tap the button below to add your first task.</string>
+    <string name="add_todo_button">Add Todo</string>
+    <string name="title_label">Title</string>
+    <string name="description_label">Description</string>
+    <string name="important_label">Mark as important</string>
+    <string name="save_todo_button">Save Todo</string>
+    <string name="title_error">Title is required.</string>
+    <string name="description_error">Description is required.</string>
+    <string name="important_badge">Important</string>
+    <string name="about_app_description">Simple Todo helps you save daily tasks, short notes, and important reminders in one simple screen flow.</string>
+    <string name="about_mascot_description">Toma is the small notebook mascot of this app. He reminds you to stay organized, finish important tasks, and keep your day calm.</string>
+    <string name="mascot_image_description">Illustration of Toma, the notebook mascot</string>
 </resources>

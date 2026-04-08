@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Todo Sederhana</string>
+    <string name="todo_menu_title">Daftar Tugas</string>
+    <string name="add_menu_title">Tambah Tugas</string>
+    <string name="about_menu_title">Tentang</string>
+    <string name="up_label">Kembali</string>
+    <string name="empty_todo_title">Belum ada tugas</string>
+    <string name="empty_todo_description">Tekan tombol di bawah untuk menambah tugas pertama.</string>
+    <string name="add_todo_button">Tambah Tugas</string>
+    <string name="title_label">Judul</string>
+    <string name="description_label">Deskripsi</string>
+    <string name="important_label">Tandai sebagai penting</string>
+    <string name="save_todo_button">Simpan Tugas</string>
+    <string name="title_error">Judul wajib diisi.</string>
+    <string name="description_error">Deskripsi wajib diisi.</string>
+    <string name="important_badge">Penting</string>
+    <string name="about_app_description">Todo Sederhana membantu kamu menyimpan tugas harian, catatan singkat, dan pengingat penting dalam alur layar yang sederhana.</string>
+    <string name="about_mascot_description">Toma adalah maskot buku catatan kecil di aplikasi ini. Ia mengingatkan kamu untuk tetap rapi, menyelesaikan tugas penting, dan menjalani hari dengan tenang.</string>
+    <string name="mascot_image_description">Ilustrasi Toma, maskot buku catatan</string>
+</resources>
