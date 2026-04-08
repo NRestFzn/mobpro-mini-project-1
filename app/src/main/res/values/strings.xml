@@ -15,6 +15,6 @@
     <string name="description_error">Description is required.</string>
     <string name="important_badge">Important</string>
     <string name="about_app_description">Simple Todo helps you save daily tasks, short notes, and important reminders in one simple screen flow.</string>
-    <string name="about_mascot_description">Toma is the small notebook mascot of this app. He reminds you to stay organized, finish important tasks, and keep your day calm.</string>
+    <string name="about_mascot_description">Introducing Liz, A small blue creature that always looks sleepy. Liz is Nashir Mascot</string>
     <string name="mascot_image_description">Illustration of Toma, the notebook mascot</string>
 </resources>
