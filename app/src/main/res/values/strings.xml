@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Simple Todo</string>
+    <string name="app_name">Todo List</string>
     <string name="todo_menu_title">Todo List</string>
     <string name="add_menu_title">Add Todo</string>
     <string name="about_menu_title">About</string>

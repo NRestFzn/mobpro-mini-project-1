@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Todo Sederhana</string>
+    <string name="app_name">Hal Yang Harus Dilakukan</string>
     <string name="todo_menu_title">Daftar Tugas</string>
     <string name="add_menu_title">Tambah Tugas</string>
     <string name="about_menu_title">Tentang</string>
