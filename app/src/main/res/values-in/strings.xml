@@ -5,7 +5,7 @@
     <string name="about_menu_title">Tentang</string>
     <string name="up_label">Kembali</string>
     <string name="empty_todo_title">Belum ada tugas</string>
-    <string name="empty_todo_description">Tekan tombol di bawah untuk menambah tugas pertama.</string>
+    <string name="empty_todo_description">Tekan tombol Tambah Tugas untuk menambah tugas pertama.</string>
     <string name="add_todo_button">Tambah Tugas</string>
     <string name="title_label">Judul</string>
     <string name="description_label">Deskripsi</string>
@@ -17,4 +17,5 @@
     <string name="about_app_description">Todo Sederhana membantu kamu menyimpan tugas harian, catatan singkat, dan pengingat penting dalam alur layar yang sederhana.</string>
     <string name="about_mascot_description">Kenalkan Liz, Liz adalah mahkluk kecil berwarna biru yang selalu terlihat mengantuk. Liz adalah maskot Nashir</string>
     <string name="mascot_image_description">Ilustrasi Toma, maskot buku catatan</string>
+    <string name="open_website_button">Buka Website</string>
 </resources>

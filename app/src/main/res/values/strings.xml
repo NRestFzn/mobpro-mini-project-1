@@ -5,7 +5,7 @@
     <string name="about_menu_title">About</string>
     <string name="up_label">Up</string>
     <string name="empty_todo_title">No todo yet</string>
-    <string name="empty_todo_description">Tap the button below to add your first task.</string>
+    <string name="empty_todo_description">Tap the button Add button to add your first task.</string>
     <string name="add_todo_button">Add Todo</string>
     <string name="title_label">Title</string>
     <string name="description_label">Description</string>
@@ -17,4 +17,5 @@
     <string name="about_app_description">Simple Todo helps you save daily tasks, short notes, and important reminders in one simple screen flow.</string>
     <string name="about_mascot_description">Introducing Liz, A small blue creature that always looks sleepy. Liz is Nashir Mascot</string>
     <string name="mascot_image_description">Illustration of Toma, the notebook mascot</string>
+    <string name="open_website_button">Open Website</string>
 </resources>
