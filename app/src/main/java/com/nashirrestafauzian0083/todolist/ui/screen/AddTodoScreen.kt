@@ -279,12 +279,14 @@ private fun ColorSwatch(argb: Long, selected: Boolean, onClick: () -> Unit) {
 private fun DeleteAction(permanent: Boolean, onDelete: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
-    IconButton(onClick = { }) {
-        Icon(
-            imageVector = Icons.Filled.MoreVert,
-            contentDescription = stringResource(R.string.more_options),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                imageVector = Icons.Filled.MoreVert,
+                contentDescription = stringResource(R.string.more_options),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
