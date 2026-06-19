@@ -18,6 +18,7 @@
     <string name="save_todo_button">Save</string>
     <string name="title_error">Title is required.</string>
     <string name="description_error">Description is required.</string>
+    <string name="status_error">Status is required.</string>
     <string name="more_options">More options</string>
     <string name="delete_todo">Delete todo</string>
     <string name="delete_todo_permanently">Delete permanently</string>
@@ -33,4 +34,11 @@
     <string name="about_mascot_description">Introducing Liz, A small blue creature that always looks sleepy. Liz is Nashir Mascot</string>
     <string name="mascot_image_description">Illustration of Toma, the notebook mascot</string>
     <string name="open_website_button">Open Website</string>
+    <string name="profil">Profile</string>
+    <string name="error">Error</string>
+    <string name="try_again">Try Again</string>
+    <string name="logout">Logout</string>
+    <string name="tutup">Close</string>
+    <string name="please_login">Please login first</string>
+    <string name="logout_success">Successfully logged out</string>
 </resources>
