@@ -191,7 +191,7 @@ fun AddTodoScreen(
                         }
                     }
                     if (id != null) {
-                        DeleteAction(permanent = isDeleted) { }
+                        DeleteAction(permanent = isDeleted) { showDialog = true }
                     }
                 },
             )
