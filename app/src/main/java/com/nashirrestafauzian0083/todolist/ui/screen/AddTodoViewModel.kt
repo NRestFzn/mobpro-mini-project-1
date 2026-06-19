@@ -1,50 +1,104 @@
 package com.nashirrestafauzian0083.todolist.ui.screen
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nashirrestafauzian0083.todolist.database.TodoDao
 import com.nashirrestafauzian0083.todolist.model.TodoItem
+import com.nashirrestafauzian0083.todolist.network.TodoApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
-class AddTodoViewModel(private val dao: TodoDao) : ViewModel() {
+class AddTodoViewModel : ViewModel() {
 
-    suspend fun getTodo(id: Long): TodoItem? = dao.getById(id)
-
-    fun insert(title: String, description: String, status: String, statusColor: Long) {
-        val todo = TodoItem(
-            title = title,
-            description = description,
-            status = status,
-            statusColor = statusColor,
-        )
-        viewModelScope.launch(Dispatchers.IO) {
-            dao.insert(todo)
+    suspend fun getTodo(userEmail: String, id: Long): TodoItem? {
+        return try {
+            val activeResponse = TodoApi.service.getActiveTodos(userEmail)
+            var todo = activeResponse.data?.find { it.id == id }
+            if (todo == null) {
+                val deletedResponse = TodoApi.service.getDeletedTodos(userEmail)
+                todo = deletedResponse.data?.find { it.id == id }
+            }
+            todo
+        } catch (e: Exception) {
+            Log.d("AddTodoViewModel", "Failure: ${e.message}")
+            null
         }
     }
 
-    fun update(id: Long, title: String, description: String, status: String, statusColor: Long) {
-        val todo = TodoItem(
-            id = id,
-            title = title,
-            description = description,
-            status = status,
-            statusColor = statusColor,
-        )
+    fun insert(userEmail: String, title: String, description: String, status: String, statusColor: Long, bitmap: android.graphics.Bitmap?, onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            dao.update(todo)
+            try {
+                val titleBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
+                val descBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+                val statusBody = status.toRequestBody("text/plain".toMediaTypeOrNull())
+                val colorBody = statusColor.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                
+                var imagePart: okhttp3.MultipartBody.Part? = null
+                if (bitmap != null) {
+                    val stream = java.io.ByteArrayOutputStream()
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, stream)
+                    val byteArray = stream.toByteArray()
+                    val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    imagePart = okhttp3.MultipartBody.Part.createFormData("image", "image.jpg", requestBody)
+                }
+
+                TodoApi.service.createTodo(userEmail, titleBody, descBody, statusBody, colorBody, imagePart)
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                Log.d("AddTodoViewModel", "Insert Failure: ${e.message}")
+            }
         }
     }
 
-    fun delete(id: Long) {
+    fun update(userEmail: String, id: Long, title: String, description: String, status: String, statusColor: Long, bitmap: android.graphics.Bitmap?, onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            dao.softDeleteById(id)
+            try {
+                val titleBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
+                val descBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+                val statusBody = status.toRequestBody("text/plain".toMediaTypeOrNull())
+                val colorBody = statusColor.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                
+                var imagePart: okhttp3.MultipartBody.Part? = null
+                if (bitmap != null) {
+                    val stream = java.io.ByteArrayOutputStream()
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, stream)
+                    val byteArray = stream.toByteArray()
+                    val requestBody = byteArray.toRequestBody("image/jpeg".toMediaTypeOrNull())
+                    imagePart = okhttp3.MultipartBody.Part.createFormData("image", "image.jpg", requestBody)
+                }
+
+                TodoApi.service.updateTodo(userEmail, id, titleBody, descBody, statusBody, colorBody, imagePart)
+                TodoApi.service.restoreTodo(userEmail, id)
+                kotlinx.coroutines.withContext(Dispatchers.Main) {
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                Log.d("AddTodoViewModel", "Update Failure: ${e.message}")
+            }
         }
     }
 
-    fun deletePermanently(id: Long) {
+    fun delete(userEmail: String, id: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            dao.hardDeleteById(id)
+            try {
+                TodoApi.service.softDeleteTodo(userEmail, id)
+            } catch (e: Exception) {
+                Log.d("AddTodoViewModel", "Delete Failure: ${e.message}")
+            }
+        }
+    }
+
+    fun deletePermanently(userEmail: String, id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                TodoApi.service.hardDeleteTodo(userEmail, id)
+            } catch (e: Exception) {
+                Log.d("AddTodoViewModel", "Permanent Delete Failure: ${e.message}")
+            }
         }
     }
 }

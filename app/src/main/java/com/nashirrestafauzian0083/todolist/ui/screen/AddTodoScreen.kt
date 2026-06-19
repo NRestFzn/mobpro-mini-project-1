@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +48,20 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.mutableLongStateOf
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.material.icons.filled.Add
 import com.nashirrestafauzian0083.todolist.R
 import com.nashirrestafauzian0083.todolist.util.ViewModelFactory
 
@@ -66,26 +81,51 @@ fun AddTodoScreen(
     onNavigateUp: () -> Unit,
 ) {
     val context = LocalContext.current
-    val factory = remember(context) { ViewModelFactory(context) }
+    val factory = remember(context) { ViewModelFactory() }
     val viewModel: AddTodoViewModel = viewModel(factory = factory)
+
+    val userDataStore = remember(context) { com.nashirrestafauzian0083.todolist.util.UserDataStore(context) }
+    val user by userDataStore.userFlow.collectAsState(initial = com.nashirrestafauzian0083.todolist.model.User())
 
     var title by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var status by rememberSaveable { mutableStateOf("") }
     var statusColor by rememberSaveable { mutableLongStateOf(DefaultStatusColors[0]) }
     var isDeleted by rememberSaveable { mutableStateOf(false) }
+    var imageUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var titleError by rememberSaveable { mutableStateOf(false) }
     var descriptionError by rememberSaveable { mutableStateOf(false) }
+    var statusError by rememberSaveable { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+    var isSaving by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        if (id == null) return@LaunchedEffect
-        val todo = viewModel.getTodo(id) ?: return@LaunchedEffect
+    val launcher = rememberLauncherForActivityResult(CropImageContract()) { result ->
+        if (result.isSuccessful) {
+            val uri = result.uriContent
+            if (uri != null) {
+                bitmap = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                    @Suppress("DEPRECATION")
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                } else {
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    ImageDecoder.decodeBitmap(source)
+                }
+            }
+        } else {
+            Log.e("IMAGE", "Error: ${result.error}")
+        }
+    }
+
+    LaunchedEffect(id, user.email) {
+        if (id == null || user.email.isEmpty()) return@LaunchedEffect
+        val todo = viewModel.getTodo(user.email, id) ?: return@LaunchedEffect
         title = todo.title
         description = todo.description
         status = todo.status
         statusColor = todo.statusColor
         isDeleted = todo.isDeleted
+        imageUrl = todo.imageUrl
     }
 
     Scaffold(
@@ -113,26 +153,45 @@ fun AddTodoScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 actions = {
-                    IconButton(onClick = {
-                        titleError = title.isBlank()
-                        descriptionError = description.isBlank()
-                        if (titleError || descriptionError) return@IconButton
+                    IconButton(
+                        onClick = {
+                            if (isSaving) return@IconButton
+                            titleError = title.isBlank()
+                            descriptionError = description.isBlank()
+                            statusError = status.isBlank()
+                            if (titleError || descriptionError || statusError) return@IconButton
 
-                        if (id == null) {
-                            viewModel.insert(title, description, status, statusColor)
+                            isSaving = true
+                            if (id == null) {
+                                viewModel.insert(user.email, title, description, status, statusColor, bitmap) {
+                                    isSaving = false
+                                    onNavigateUp()
+                                }
+                            } else {
+                                viewModel.update(user.email, id, title, description, status, statusColor, bitmap) {
+                                    isSaving = false
+                                    onNavigateUp()
+                                }
+                            }
+                        },
+                        enabled = !isSaving
+                    ) {
+                        if (isSaving) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 2.dp
+                            )
                         } else {
-                            viewModel.update(id, title, description, status, statusColor)
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(R.string.save_todo_button),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
                         }
-                        onNavigateUp()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = stringResource(R.string.save_todo_button),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
                     }
                     if (id != null) {
-                        DeleteAction(permanent = isDeleted) { showDialog = true }
+                        DeleteAction(permanent = isDeleted) { }
                     }
                 },
             )
@@ -152,9 +211,26 @@ fun AddTodoScreen(
             },
             descriptionError = descriptionError,
             status = status,
-            onStatusChange = { status = it },
+            onStatusChange = {
+                status = it
+                if (it.isNotBlank()) statusError = false
+            },
+            statusError = statusError,
             statusColor = statusColor,
             onStatusColorChange = { statusColor = it },
+            bitmap = bitmap,
+            imageUrl = imageUrl,
+            onImageClick = {
+                val options = CropImageContractOptions(
+                    null,
+                    CropImageOptions(
+                        imageSourceIncludeGallery = true,
+                        imageSourceIncludeCamera = true,
+                        fixAspectRatio = true
+                    )
+                )
+                launcher.launch(options)
+            },
             modifier = Modifier.padding(innerPadding),
         )
 
@@ -164,7 +240,7 @@ fun AddTodoScreen(
                 onDismissRequest = { showDialog = false },
                 onConfirmation = {
                     showDialog = false
-                    if (isDeleted) viewModel.deletePermanently(id) else viewModel.delete(id)
+                    if (isDeleted) viewModel.deletePermanently(user.email, id) else viewModel.delete(user.email, id)
                     onNavigateUp()
                 },
             )
@@ -182,8 +258,12 @@ private fun FormTodo(
     descriptionError: Boolean,
     status: String,
     onStatusChange: (String) -> Unit,
+    statusError: Boolean,
     statusColor: Long,
     onStatusColorChange: (Long) -> Unit,
+    bitmap: Bitmap?,
+    imageUrl: String?,
+    onImageClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -193,6 +273,50 @@ private fun FormTodo(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        val imageModifier = Modifier
+            .fillMaxWidth()
+            .size(200.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .clickable { onImageClick() }
+            .border(1.dp, MaterialTheme.colorScheme.outline, androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+
+        if (bitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Preview Image",
+                contentScale = ContentScale.Crop,
+                modifier = imageModifier
+            )
+        } else if (imageUrl != null) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Todo Image",
+                contentScale = ContentScale.Crop,
+                modifier = imageModifier
+            )
+            } else {
+            Box(
+                modifier = imageModifier,
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Attach Image",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Attach Image",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
         OutlinedTextField(
             value = title,
             onValueChange = onTitleChange,
@@ -234,11 +358,18 @@ private fun FormTodo(
             label = { Text(text = stringResource(R.string.status_label)) },
             placeholder = { Text(text = stringResource(R.string.status_placeholder)) },
             singleLine = true,
+            isError = statusError,
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.Words,
             ),
             modifier = Modifier.fillMaxWidth(),
         )
+        if (statusError) {
+            Text(
+                text = stringResource(R.string.status_error),
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
 
         Text(text = stringResource(R.string.status_color_label))
         Row(
